@@ -21,11 +21,11 @@ public class Worker implements Runnable {
 
 
     public void run() {
-        String message;
+        Message message;
         while (true) {
             try {
                 message = node.getUdpHandler().receiveMessage(2000);
-                MessageType messageType = messageExtractor.getMessageType(message);
+                MessageType messageType = messageExtractor.getMessageType(message.getMessage());
                 this.invokeNodeMethod(messageType,message);
 
             } catch (IOException e) {
@@ -35,13 +35,13 @@ public class Worker implements Runnable {
     }
 
 
-    private void invokeNodeMethod(MessageType messageType,String message) throws IOException{
+    private void invokeNodeMethod(MessageType messageType,Message message) throws IOException{
         if(messageType.equals(MessageType.REGOK)) {
-            node.registerResponse(message);
+            node.registerResponse(message.getMessage());
         } else if (messageType.equals(MessageType.JOINOK)) {
-            node.joinResponse();
+            node.joinResponse(message);
         } else if (messageType.equals(MessageType.JOIN)) {
-            node.generateJoinResponseForNode();
+            node.generateJoinRequestResponseForNode(message);
         } else {
             System.out.println("still not implemented");
             return;

@@ -47,14 +47,12 @@ public class App {
                 }
             }
 
+            //Registered
+            //Start Joining
 
-//            if (register) System.out.println("Registered");
-//            else System.out.println("Can not register in BS");
+            node.join();
             Thread.sleep(2000);
-//            boolean unregister = false;
-//            unregister = node.unregister();
-//            if(unregister) System.out.println("unregistered");
-//            else System.out.println("can not unregister");
+
 
 
 

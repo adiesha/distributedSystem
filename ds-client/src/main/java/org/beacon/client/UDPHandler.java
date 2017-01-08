@@ -1,5 +1,7 @@
 package org.beacon.client;
 
+import org.beacon.client.Message.Message;
+
 import java.io.IOException;
 import java.net.*;
 import java.util.Date;
@@ -54,7 +56,7 @@ public class UDPHandler {
         return true;
     }
 
-    public String receiveMessage(int timeout) throws IOException, SocketTimeoutException {
+    public Message receiveMessage(int timeout) throws IOException, SocketTimeoutException {
         byte[] buffer = new byte[65536];
         DatagramPacket incoming = new DatagramPacket(buffer, buffer.length);
         datagramSocket.receive(incoming);
@@ -62,7 +64,9 @@ public class UDPHandler {
         byte[] data = incoming.getData();
         String s = new String(data, 0, incoming.getLength());
         System.out.println(s);
-        return s;
+        Message message = new Message(s,incoming.getAddress(),incoming.getPort());
+
+        return message;
     }
 
     public InetAddress getLoAddressipv4() {
