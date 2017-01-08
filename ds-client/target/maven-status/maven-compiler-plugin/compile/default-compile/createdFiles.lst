@@ -1,0 +1,11 @@
+org\beacon\client\MessageEncoder.class
+org\beacon\client\Worker.class
+org\beacon\client\App.class
+org\beacon\client\NodeException.class
+org\beacon\client\MessageExtractor.class
+org\beacon\client\UDPHandler.class
+org\beacon\client\Message\MessageResponse.class
+org\beacon\client\Message\Message.class
+org\beacon\client\Neighbour.class
+org\beacon\client\Node.class
+org\beacon\client\MessageType.class

@@ -1,0 +1,4 @@
+org\beacon\client\MessageEncoderTest.class
+org\beacon\client\NeighbourTest.class
+org\beacon\client\AppTest.class
+org\beacon\client\MessageExtractorTest.class
