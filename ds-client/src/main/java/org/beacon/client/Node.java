@@ -7,6 +7,7 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
@@ -21,16 +22,19 @@ public class Node {
     private MessageEncoder messageEncoder = null;
     private Neighbour[] tempNeighbours;
     private boolean isRegistered = false;
+    private List<String> fileNames = null;
+
 
     //remember to set true for the first node
     private boolean isJoined = false;
 
-    public Node(String username, Properties properties) throws SocketException, UnknownHostException {
+    public Node(String username, Properties properties, List<String> fileList) throws SocketException, UnknownHostException {
         this.userName = username;
         udpHandler = new UDPHandler(properties);
         this.nodeAddress = udpHandler.getLocalIp();
         this.messageEncoder = new MessageEncoder(properties);
         this.neighbours = new ArrayList<Neighbour>();
+        this.fileNames = fileList;
     }
 
     public Node(String userName) {
@@ -86,7 +90,12 @@ public class Node {
 
     public boolean unregister() throws IOException {
         this.udpHandler.sendMessage(messageEncoder.encodeUnregisterMessage(getUserName(), getUdpHandler().getLocalIp(), this.udpHandler.getNodePort()), this.udpHandler.getBootstrapServerIp(), this.udpHandler.getBsPort());
-        this.udpHandler.receiveMessage(2000);
+        this.setRegistered(false);
+        return true;
+    }
+
+    public boolean unregisterResponse(Message message) {
+        this.extractUnregisterResponse(message.getMessage());
         return true;
     }
 
@@ -121,9 +130,9 @@ public class Node {
      *
      * @return
      */
-    public boolean generateJoinRequestResponseForNode(Message message) throws IOException{
+    public boolean generateJoinRequestResponseForNode(Message message) throws IOException {
         String response = this.extractJoinRequestResponse(message);
-        getUdpHandler().sendMessage(response,message.getAddress(),message.getPort());
+        getUdpHandler().sendMessage(response, message.getAddress(), message.getPort());
         return true;
     }
 
@@ -132,6 +141,10 @@ public class Node {
     }
 
     public boolean searchResponse() {
+        return false;
+    }
+
+    public boolean searchRequest() {
         return false;
     }
 
@@ -204,8 +217,8 @@ public class Node {
         String length = st.nextToken();
         String command = st.nextToken();
         int responseCode = Integer.parseInt(st.nextToken());
-        if (responseCode==0) {
-            Neighbour neighbour = new Neighbour(response.getAddress(),response.getPort());
+        if (responseCode == 0) {
+            Neighbour neighbour = new Neighbour(response.getAddress(), response.getPort());
             this.addNeighbour(neighbour);
             this.setJoined(true);
             System.out.println("One join response was successful");
@@ -221,33 +234,47 @@ public class Node {
 
         String hostName = st.nextToken();
         int port = Integer.parseInt(st.nextToken());
-        Neighbour neighbour = new Neighbour(InetAddress.getByName(hostName),port);
+        Neighbour neighbour = new Neighbour(InetAddress.getByName(hostName), port);
         return neighbour;
     }
 
     public String extractJoinRequestResponse(Message message) throws UnknownHostException {
-        StringTokenizer st = new StringTokenizer(message.getMessage()," ");
+        StringTokenizer st = new StringTokenizer(message.getMessage(), " ");
         String length = st.nextToken();
         String command = st.nextToken();
         String hostName = st.nextToken();
         int port = Integer.parseInt(st.nextToken());
-        Neighbour neighbour = new Neighbour(InetAddress.getByName(hostName),port);
+        Neighbour neighbour = new Neighbour(InetAddress.getByName(hostName), port);
 
         Integer lock = new Integer(0);
         String response;
-        synchronized(lock){
-            if(this.getNeighbours().contains(neighbour)) {
+        synchronized (lock) {
+            if (this.getNeighbours().contains(neighbour)) {
                 response = MessageType.JOINOK.toString() + " 9999";
-                response = String.format("%04d "+response,response.getBytes().length +5);
+                response = String.format("%04d " + response, response.getBytes().length + 5);
             } else {
                 this.addNeighbour(neighbour);
                 response = MessageType.JOINOK.toString() + " 0";
-                response = String.format("%04d "+response,response.getBytes().length +5);
+                response = String.format("%04d " + response, response.getBytes().length + 5);
             }
 
             return response;
         }
 
+    }
+
+    public void extractUnregisterResponse(String message) {
+        StringTokenizer st = new StringTokenizer(message, " ");
+        String length = st.nextToken();
+        String command = st.nextToken();
+
+        int responseCode = Integer.parseInt(st.nextToken());
+
+        if (responseCode == 0) {
+            System.out.println("Unregister was successful");
+        } else {
+            System.out.println("error while unregistering. IP and port may not be in the registry or command is incorrect.");
+        }
     }
 }
 

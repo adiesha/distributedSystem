@@ -92,4 +92,8 @@ public class UDPHandler {
     public InetAddress getLocalIp() {
         return localIp;
     }
+
+    public void closeDataGramSocket() {
+        this.datagramSocket.close();
+    }
 }
